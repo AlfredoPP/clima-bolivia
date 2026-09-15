@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 import { ForecastCard } from './components/ForecastCard'
@@ -13,53 +13,82 @@ function App() {
   const [forecast, setForecast] = useState<DailyForecast[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const forecastSectionRef = useRef<HTMLElement>(null)
-  const loadForecast = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+  const [retryCount, setRetryCount] = useState(0)
 
-    try {
-      const data = await getWeatherForecast(selectedCity)
-      setForecast(data)
-    } catch (err) {
-      console.error(err)
-      setForecast([])
-      setError(
-        'No pudimos obtener el pronóstico. Verifica tu conexión e inténtalo nuevamente.',
-      )
-    } finally {
-      setIsLoading(false)
-    }
-  }, [selectedCity])
+  const forecastSectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    void loadForecast()
-  }, [loadForecast])
+    let isCancelled = false
 
-   
+    const fetchForecast = async () => {
+      try {
+        const data = await getWeatherForecast(selectedCity)
+
+        if (!isCancelled) {
+          setForecast(data)
+          setError(null)
+        }
+      } catch (err) {
+        console.error(err)
+
+        if (!isCancelled) {
+          setForecast([])
+          setError(
+            'No pudimos obtener el pronóstico. Verifica tu conexión e inténtalo nuevamente.',
+          )
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void fetchForecast()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [selectedCity, retryCount])
 
   const handleCitySelect = (city: City) => {
-  setSelectedCity(city)
+    if (city.id === selectedCity.id) {
+      return
+    }
 
-  if (window.matchMedia('(max-width: 720px)').matches) {
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
+    setSelectedCity(city)
+    setForecast([])
+    setError(null)
+    setIsLoading(true)
 
-    window.setTimeout(() => {
-      forecastSectionRef.current?.scrollIntoView({
-        behavior: prefersReducedMotion ? 'auto' : 'smooth',
-        block: 'start',
-      })
-    }, 100)
+    if (window.matchMedia('(max-width: 720px)').matches) {
+      const prefersReducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches
+
+      window.setTimeout(() => {
+        forecastSectionRef.current?.scrollIntoView({
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start',
+        })
+      }, 100)
+    }
   }
-}
+
+  const handleRetry = () => {
+    setForecast([])
+    setError(null)
+    setIsLoading(true)
+    setRetryCount((currentCount) => currentCount + 1)
+  }
 
   return (
     <main className="app">
       <header className="app-header">
         <p className="app-header__eyebrow">Pronóstico meteorológico</p>
+
         <h1>Clima Bolivia</h1>
+
         <p>
           Consulta el pronóstico de los próximos 7 días en las nueve
           capitales departamentales de Bolivia.
@@ -113,9 +142,10 @@ function App() {
         {!isLoading && error && (
           <div className="status-message status-message--error">
             <span aria-hidden="true">⚠️</span>
+
             <p>{error}</p>
 
-            <button type="button" onClick={() => void loadForecast()}>
+            <button type="button" onClick={handleRetry}>
               Reintentar
             </button>
           </div>
