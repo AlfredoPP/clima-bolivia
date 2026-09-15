@@ -110,6 +110,18 @@ En pantallas pequeñas el contenido se reorganiza verticalmente. Además, al sel
 
 El desplazamiento respeta prefers-reduced-motion para usuarios que tienen reducidas las animaciones en su sistema.
 
+## Demo
+
+La aplicación está desplegada públicamente en Vercel:
+
+https://clima-bolivia.vercel.app/
+
+## Repositorio
+
+Código fuente disponible en GitHub:
+
+https://github.com/AlfredoPP/clima-bolivia
+
 Estructura del proyecto
 src/
 ├── components/
@@ -135,7 +147,7 @@ Instalación
 
 Clonar el repositorio:
 
-git clone <URL-DEL-REPOSITORIO>
+git clone [<URL-DEL-REPOSITORIO>](https://github.com/AlfredoPP/clima-bolivia.git)
 
 Entrar al proyecto:
 
