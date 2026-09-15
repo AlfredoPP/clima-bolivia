@@ -147,7 +147,7 @@ Instalación
 
 Clonar el repositorio:
 
-git clone [<URL-DEL-REPOSITORIO>](https://github.com/AlfredoPP/clima-bolivia.git)
+git clone https://github.com/AlfredoPP/clima-bolivia.git
 
 Entrar al proyecto:
 
